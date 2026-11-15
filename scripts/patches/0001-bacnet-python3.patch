@@ -1,0 +1,58 @@
+From: Beremiz community Linux releases
+Subject: [PATCH] Fix BACnet persistence, runtime text conversion and CLI tables on Python 3
+
+Pickle requires binary streams. ctypes c_char_p returns bytes and accepts
+bytes, whereas the web form and JSON configuration require text. The CLI
+wx stub must also allow table subclasses to be initialized.
+
+--- a/bacnet/bacnet.py
++++ b/bacnet/bacnet.py
+@@ -412,7 +412,7 @@
+         # derives/inherits from wx.grid.GridTableBase). Another reason not to store the whole
+         # object is because it is not pickable (i.e. pickle.dump() cannot handle it)!!
+         try:
+-            fd = open(filepath,   "w")
++            fd = open(filepath,   "wb")
+             pickle.dump(self.ObjTablesData, fd)
+             fd.close()
+             # On successfull save, reset flags to indicate no more changes that
+@@ -433,7 +433,7 @@
+     def LoadFromFile(self, filepath):
+         # Load the data that is saved in SaveToFile()
+         try:
+-            fd = open(filepath,   "r")
++            fd = open(filepath,   "rb")
+             self.ObjTablesData = pickle.load(fd)
+             fd.close()
+             return True
+--- a/bacnet/web_settings.py
++++ b/bacnet/web_settings.py
+@@ -208,6 +208,8 @@
+     current_config = {}
+     for par_name, x1, x2, x3 in BACnet_parameters:
+         value = BacnetGetParamFuncs[par_name]()
++        if isinstance(value, bytes):
++            value = value.decode("utf-8")
+         if value is not None:
+             current_config[par_name] = value
+     
+@@ -223,6 +225,8 @@
+         value = BACnetConfig[par_name]
+         #PLCObject.LogMessage("BACnet web server extension::_SetBacnetPLCConfiguration()  Setting "
+         #                       + par_name + " to " + str(value) )
++        if isinstance(value, str):
++            value = value.encode("utf-8")
+         if value is not None:
+             BacnetSetParamFuncs[par_name](value)
+     # update the configuration shown on the web interface
+--- a/fake_wx.py
++++ b/fake_wx.py
+@@ -45,7 +45,7 @@
+ 
+ class FakeClass:
+     def __init__(self, *args, **kwargs):
+-        print(("DUMMY Class __init__ !",self.__name__,args,kwargs))
++        pass
+ 
+ 
+ class FakeModule(ModuleType):

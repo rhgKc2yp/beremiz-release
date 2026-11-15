@@ -1,0 +1,25 @@
+From: Beremiz community Linux releases
+Subject: [PATCH] Configure BACnet cell editors before passing them to wxGTK
+
+wxPython 4.2.4 returns a base GridCellEditor wrapper from GetCellEditor,
+which does not expose the number/choice editor SetParameters method.
+Configure the concrete editor before transferring ownership to the grid.
+
+--- a/bacnet/BacnetSlaveEditor.py
++++ b/bacnet/BacnetSlaveEditor.py
+@@ -578,11 +578,11 @@
+                 GridCellEditorConstructorArgs = \
+                     PropertyConfig["GridCellEditorConstructorArgs"] \
+                     if "GridCellEditorConstructorArgs" in PropertyConfig else []
+-                grid.SetCellEditor(row, col, PropertyConfig["GridCellEditor"](*GridCellEditorConstructorArgs))
++                editor = PropertyConfig["GridCellEditor"](*GridCellEditorConstructorArgs)
++                if "GridCellEditorParam" in PropertyConfig:
++                    editor.SetParameters(PropertyConfig["GridCellEditorParam"])
++                grid.SetCellEditor(row, col, editor)
+                 grid.SetCellRenderer(row, col, PropertyConfig["GridCellRenderer"]())
+-                if "GridCellEditorParam" in PropertyConfig:
+-                    grid.GetCellEditor(row, col).SetParameters(
+-                        PropertyConfig["GridCellEditorParam"])
+             self.ResizeRow(grid, row)
+ 
+     def FindValueByName(self, PropertyName, PropertyValue):

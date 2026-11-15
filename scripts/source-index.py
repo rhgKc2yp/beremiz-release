@@ -34,4 +34,6 @@ for module in manifest['modules']:
     for source in module['sources']:
         print('  ' + json.dumps(source, sort_keys=True))
 print('\nThe payload retains component licence notices. Application sources are')
-print('unmodified; the build scripts and SDK manifest document their build inputs.')
+print('archived unchanged; patches/ in application-sources.tar.gz and PATCHES/')
+print('in the payload contain the applied downstream patches. The build scripts')
+print('and SDK manifest document the build inputs.')

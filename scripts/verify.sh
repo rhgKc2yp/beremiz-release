@@ -42,6 +42,7 @@ for codec in ('PNG', 'JPEG', 'WEBP', 'TIFF'):
 print('Image codecs and numerical libraries work')
 PY
 "$bundle/bin/beremiz-cli" --help
+"$bundle/bin/beremiz-python" "$(dirname "$0")/verify-bacnet.py" "$bundle"
 cp -a "$bundle/beremiz/tests/projects/iec61131_lang_test" "$work/project"
 "$bundle/bin/beremiz-cli" --project-home "$work/project" build
 test -n "$(find "$work/project" -name '*.so' -print -quit)"

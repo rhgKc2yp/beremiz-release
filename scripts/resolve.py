@@ -11,6 +11,8 @@ import subprocess
 import urllib.request
 
 RECIPE = "d80eb660b83473df8e767f28f6980ecbaa9e1024"
+# Last 0.8 release: Beremiz's BACnet generator uses the legacy flat headers/API.
+BACNET_REVISION = "0af5a273304a4ecb5215c7e3fe473f527dcf0079"  # 0.8.7
 
 
 def get(url):
@@ -39,7 +41,8 @@ def main():
                "matiec": ("beremiz/matiec", pins["matiec"]),
                "Modbus": ("beremiz/Modbus", pins["Modbus"]),
                "canfestival": ("beremiz/canfestival", pins["canfestival"]),
-               "open62541": ("open62541/open62541", pins["open62541"])}
+               "open62541": ("open62541/open62541", pins["open62541"]),
+               "BACnet": ("bacnet-stack/bacnet-stack", BACNET_REVISION)}
     root = Path("build/sources")
     root.mkdir(parents=True, exist_ok=True)
     records = {}

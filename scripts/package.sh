@@ -12,9 +12,10 @@ cp build/requirements.txt dist/requirements.txt
 cp build/beremiz/SDK-MANIFEST.json dist/SDK-MANIFEST.json
 cp build/beremiz/UBUNTU-PACKAGES.json dist/UBUNTU-PACKAGES.json
 python3 scripts/source-index.py build/beremiz > dist/SOURCES.txt
-# Corresponding unmodified application and PLC library sources accompany releases.
+# Corresponding original sources and downstream patches accompany releases.
 tar --sort=name --owner=0 --group=0 --numeric-owner -czf dist/application-sources.tar.gz \
-    -C build/sources beremiz.tar.gz matiec.tar.gz Modbus.tar.gz canfestival.tar.gz open62541.tar.gz
+    -C "$PWD/build/sources" beremiz.tar.gz matiec.tar.gz Modbus.tar.gz canfestival.tar.gz open62541.tar.gz BACnet.tar.gz \
+    -C "$PWD/scripts" patches
 python3 - build/beremiz dist/layout.txt <<'PY'
 from pathlib import Path
 import sys

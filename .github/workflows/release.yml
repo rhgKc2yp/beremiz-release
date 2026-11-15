@@ -142,6 +142,6 @@ jobs:
           (cd dist && sha256sum *.tar.gz *.json *.txt > SHA256SUMS)
           gh release create "$RELEASE_TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
             --draft --title "Beremiz ${RELEASE_TAG#v}" \
-            --notes "Community build of unmodified Beremiz sources for GNOME Platform 51. Not an official Beremiz release. Sources, revision locks, runtime commits, and checksums are attached. Both architectures passed offline IEC compile, transfer, and local PLC runtime verification. Recipe: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA. Validation: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID." \
+            --notes "Community build of Beremiz for GNOME Platform 51, including BACnet/IP and documented Python 3/wxPython compatibility patches. Not an official Beremiz release. Original sources, applied patches, revision locks, runtime commits, and checksums are attached. Both architectures passed offline IEC compile/transfer/run and BACnet PLC ReadProperty/WriteProperty verification. Recipe: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA. Validation: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID." \
             dist/*
           gh release edit "$RELEASE_TAG" -R "$GITHUB_REPOSITORY" --draft=false --latest

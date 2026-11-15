@@ -6,7 +6,10 @@ import sys
 
 root = Path(sys.argv[1]).resolve()
 for name in ("bin/beremiz", "bin/beremiz-cli", "bin/beremiz-python", "matiec/iec2c",
-             "matiec/lib/ieclib.txt", "toolchain/bin/gcc", "beremiz/Beremiz.py"):
+             "matiec/lib/ieclib.txt", "toolchain/bin/gcc", "beremiz/Beremiz.py",
+             "BACnet/include/bacdef.h", "BACnet/ports/linux/bip-init.c",
+             "BACnet/lib/libbacnet.a", "PATCHES/0001-bacnet-python3.patch",
+             "PATCHES/0002-bacnet-wx-editor.patch"):
     if not (root / name).is_file():
         raise SystemExit("Missing payload entry: " + name)
 for path in root.rglob("*"):

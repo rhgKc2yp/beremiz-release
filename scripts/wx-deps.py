@@ -18,7 +18,9 @@ PACKAGES = {
 
 
 def download(url):
-    with urllib.request.urlopen(url, timeout=120) as response:
+    print(f'Downloading: {url}', flush=True)
+    request = urllib.request.Request(url, headers={'User-Agent': 'beremiz-release/1.0'})
+    with urllib.request.urlopen(request, timeout=120) as response:
         return response.read()
 
 

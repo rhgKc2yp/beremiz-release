@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Optional desktop smoke test of all nine BACnet object editors (needs a display)."""
 from pathlib import Path
+from build_paths import bundle_path, fixed_bundle_args, output_path, validate_tree
 from types import SimpleNamespace
 import gettext
 import shutil
 import sys
 import tempfile
 
-bundle = Path(sys.argv[1]).resolve()
+args = fixed_bundle_args(__doc__, allow_archive=True)
+bundle = bundle_path(args.archive)
+validate_tree(bundle)
 sys.path.insert(0, str(bundle / "beremiz"))
 gettext.install("beremiz")
 
@@ -18,7 +21,9 @@ from bacnet.BacnetSlaveEditor import ObjectEditor
 app = wx.App(False)
 with tempfile.TemporaryDirectory(prefix="bacnet-gui-") as directory:
     project = Path(directory) / "project"
-    shutil.copytree(bundle / "beremiz/tests/projects/BACnet", project)
+    example = output_path(bundle, "beremiz/tests/projects/BACnet")
+    validate_tree(example)
+    shutil.copytree(example, project)
     controller = CLIController(SimpleNamespace(project_home=str(project), buildpath=None))
     assert not controller.check_and_load_project()
     node = controller.GetChildByName("bacnet_0")

@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Check required entry points, ELF runpaths, and payload symlinks."""
-from pathlib import Path
+from build_paths import bundle_path, validate_tree
+import argparse
 import subprocess
-import sys
 
-root = Path(sys.argv[1]).resolve()
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--archive', action='store_true')
+parser.add_argument('--links-only', action='store_true', help='skip SDK-only readelf checks')
+args = parser.parse_args()
+root = bundle_path(args.archive)
+validate_tree(root)
 for name in ("bin/beremiz", "bin/beremiz-cli", "bin/beremiz-python", "matiec/iec2c",
              "matiec/lib/ieclib.txt", "toolchain/bin/gcc", "beremiz/Beremiz.py",
              "BACnet/include/bacdef.h", "BACnet/ports/linux/bip-init.c",
@@ -12,11 +17,10 @@ for name in ("bin/beremiz", "bin/beremiz-cli", "bin/beremiz-python", "matiec/iec
              "PATCHES/0002-bacnet-wx-editor.patch"):
     if not (root / name).is_file():
         raise SystemExit("Missing payload entry: " + name)
+if args.links_only:
+    print("Payload entries and symlinks verified")
+    raise SystemExit(0)
 for path in root.rglob("*"):
-    if path.is_symlink():
-        target = path.readlink()
-        if target.is_absolute() or not path.resolve().is_relative_to(root):
-            raise SystemExit(f"External symlink: {path}: {target}")
     if not path.is_file():
         continue
     with path.open("rb") as stream:

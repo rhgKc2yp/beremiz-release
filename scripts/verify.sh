@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # Run on the Platform, offline, so SDK tools cannot mask missing dependencies.
 set -euo pipefail
-bundle=$(realpath "$1")
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+case "${1:-}" in
+    build) bundle="$root/build/beremiz"; bacnet_args=() ;;
+    archive) bundle="$root/build/archive-test/beremiz"; bacnet_args=(--archive) ;;
+    *) echo "usage: verify.sh build|archive" >&2; exit 2 ;;
+esac
+# Check the fixed bundle path and its links before running any bundled code.
+python3 "$root/scripts/check-layout.py" --links-only "${bacnet_args[@]}"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 export XDG_CONFIG_HOME="$work/config" XDG_DATA_HOME="$work/data" XDG_CACHE_HOME="$work/cache"
@@ -42,7 +49,7 @@ for codec in ('PNG', 'JPEG', 'WEBP', 'TIFF'):
 print('Image codecs and numerical libraries work')
 PY
 "$bundle/bin/beremiz-cli" --help
-"$bundle/bin/beremiz-python" "$(dirname "$0")/verify-bacnet.py" "$bundle"
+"$bundle/bin/beremiz-python" "$root/scripts/verify-bacnet.py" "${bacnet_args[@]}"
 cp -a "$bundle/beremiz/tests/projects/iec61131_lang_test" "$work/project"
 "$bundle/bin/beremiz-cli" --project-home "$work/project" build
 test -n "$(find "$work/project" -name '*.so' -print -quit)"

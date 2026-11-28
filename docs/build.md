@@ -45,7 +45,7 @@ With a desktop display available, also check the BACnet object editors:
 ```sh
 flatpak run --unshare=network --share=ipc --socket=wayland --socket=fallback-x11 \
   --filesystem="$PWD" --command="$PWD/build/beremiz/bin/beremiz-python" \
-  org.gnome.Platform//51 "$PWD/scripts/verify-bacnet-gui.py" "$PWD/build/beremiz"
+  org.gnome.Platform//51 "$PWD/scripts/verify-bacnet-gui.py"
 ```
 
 This creates all nine editor grids with real wxGTK and saves a temporary
@@ -75,3 +75,30 @@ After publishing, run FlatPark's resolver and `scripts/update-pins.mjs` against
 the real release assets. Never submit a manifest with placeholder hashes or
 an unavailable release URL. Test the installed Flatpak, including its GUI,
 settings persistence and PLC compile/run workflow, before opening a PR.
+
+## Security regression tests and script arguments
+
+Run `python3 -m unittest discover -s tests -v` without downloading dependencies.
+The scripts use the checkout containing them as their workspace. Run builds
+as an unprivileged user in a private checkout (no concurrent untrusted writers).
+The build payload is always `build/beremiz`; the extracted verification payload
+is always `build/archive-test/beremiz`. Arbitrary filesystem paths are no longer
+accepted by the helper scripts. The updated build driver uses these commands:
+
+```sh
+python3 scripts/wx-deps.py fetch x86_64   # or aarch64
+python3 scripts/wx-deps.py install
+python3 scripts/toolchain.py
+python3 scripts/check-layout.py
+python3 scripts/source-index.py
+bash scripts/verify.sh build
+bash scripts/verify.sh archive
+```
+
+BACnet verification and its optional GUI check use the build payload by default;
+pass `--archive` to use the extracted payload. The internal `--project-data`
+mode accepts no path and requires a private generated test working directory.
+The resolver permits stable version tags and 40-character commit IDs only,
+uses explicitly approved HTTPS GitHub endpoints, and refuses HTTP redirects.
+These controls do not establish the authenticity of Ubuntu Release metadata or
+Python dependency distributions; those are separate supply-chain concerns.

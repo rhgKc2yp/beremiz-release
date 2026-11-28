@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+python3 scripts/build_paths.py
 tag=$(python3 -c 'import json; print(json.load(open("build/inputs.lock.json"))["tag"])')
 arch=$(flatpak --default-arch)
 name="beremiz-${tag#v}-$arch.tar.gz"
@@ -11,7 +12,7 @@ cp build/runtime-commits.json dist/RUNTIME-COMMITS.json
 cp build/requirements.txt dist/requirements.txt
 cp build/beremiz/SDK-MANIFEST.json dist/SDK-MANIFEST.json
 cp build/beremiz/UBUNTU-PACKAGES.json dist/UBUNTU-PACKAGES.json
-python3 scripts/source-index.py build/beremiz > dist/SOURCES.txt
+python3 scripts/source-index.py > dist/SOURCES.txt
 # Corresponding original sources and downstream patches accompany releases.
 tar --sort=name --owner=0 --group=0 --numeric-owner -czf dist/application-sources.tar.gz \
     -C "$PWD/build/sources" beremiz.tar.gz matiec.tar.gz Modbus.tar.gz canfestival.tar.gz open62541.tar.gz BACnet.tar.gz \

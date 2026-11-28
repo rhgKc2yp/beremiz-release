@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root=$PWD
+python3 scripts/build_paths.py
 bundle="$root/build/beremiz"
 rm -rf "$bundle"
 mkdir -p "$bundle"/{bin,lib,libexec,python} build/wheels dist
@@ -29,7 +30,7 @@ Path('build/requirements.txt').write_text('\n'.join(lines) + '\n# wxPython 4.2.4
 PY
 python3 -m pip wheel --no-clean --no-deps --find-links build/wheels --wheel-dir build/wheels -r build/requirements.txt
 python3 -m pip install --no-index --no-deps --no-compile --target "$bundle/python" build/wheels/*.whl
-python3 scripts/wx-deps.py install "$bundle"
+python3 scripts/wx-deps.py install
 
 cd "$sources/matiec"
 autoreconf -fi
@@ -58,10 +59,10 @@ install -m755 scripts/environment "$bundle/libexec/environment"
 for command in beremiz beremiz-cli beremiz-runtime beremiz-python; do
     install -m755 scripts/launcher "$bundle/bin/$command"
 done
-python3 scripts/toolchain.py "$bundle"
+python3 scripts/toolchain.py
 cp build/inputs.lock.json "$bundle/SOURCES.lock.json"
 python3 -m pip list --path "$bundle/python" --format=json > "$bundle/PYTHON-PACKAGES.json"
 cp build/runtime-commits.json "$bundle/RUNTIME-COMMITS.json"
 cp "$sources/beremiz"/COPYING* "$bundle/"
 find "$bundle" -type d -name .git -prune -exec rm -rf '{}' +
-python3 scripts/check-layout.py "$bundle"
+python3 scripts/check-layout.py

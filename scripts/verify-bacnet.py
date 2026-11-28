@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Build, transfer and probe the upstream BACnet example over isolated loopback."""
 from pathlib import Path
+from build_paths import (bundle_path, bacnet_work_base, bacnet_child_project,
+                         output_path, validate_tree)
+import argparse
 import ctypes
 import gettext
 import os
@@ -63,9 +66,11 @@ def verify_settings(bundle, project, work):
     print("BACnet runtime configuration text/JSON round trip passed")
 
 
-def verify(bundle, work):
+def verify(bundle, work, archive=False):
     project = work / "project"
-    shutil.copytree(bundle / "beremiz/tests/projects/BACnet", project)
+    example = output_path(bundle, "beremiz/tests/projects/BACnet")
+    validate_tree(example)
+    shutil.copytree(example, project)
     # Use a free UDP port, without requiring a LAN interface or physical device.
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reservation:
         reservation.bind(("127.0.0.1", 0))
@@ -75,9 +80,13 @@ def verify(bundle, work):
     tree.getroot().set("Network_Interface", "lo")
     tree.getroot().set("UDP_Port_Number", str(port))
     tree.write(config, encoding="utf-8", xml_declaration=True)
-    subprocess.run([str(bundle / "bin/beremiz-python"), str(Path(__file__).resolve()),
-                    "--project-data", str(bundle), str(project)], check=True, timeout=30)
-    command = [str(bundle / "bin/beremiz-cli"), "-k", "--project-home",
+    interpreter = output_path(bundle, "bin/beremiz-python")
+    cli = output_path(bundle, "bin/beremiz-cli")
+    args = [str(interpreter), str(Path(__file__).resolve()), "--project-data"]
+    if archive:
+        args.append("--archive")
+    subprocess.run(args, cwd=work, check=True, timeout=30)
+    command = [str(cli), "-k", "--project-home",
                str(project), "build", "transfer", "run"]
     logpath = work / "runtime.log"
     with logpath.open("w") as log:
@@ -151,8 +160,14 @@ def verify(bundle, work):
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "--project-data":
-        verify_project_data(Path(sys.argv[2]).resolve(), Path(sys.argv[3]).resolve())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive", action="store_true")
+    parser.add_argument("--project-data", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    bundle = bundle_path(args.archive)
+    validate_tree(bundle)
+    if args.project_data:
+        verify_project_data(bundle, bacnet_child_project())
     else:
-        with tempfile.TemporaryDirectory(prefix="beremiz-bacnet-") as directory:
-            verify(Path(sys.argv[1]).resolve(), Path(directory))
+        with tempfile.TemporaryDirectory(prefix="run-", dir=bacnet_work_base()) as directory:
+            verify(bundle, Path(directory), args.archive)
